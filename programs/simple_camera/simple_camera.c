@@ -20,11 +20,41 @@ int main() {
     //should be set in while loop!!!!!
     //here just leave declarations
 
+
+    //After acceptation for this piece of code I will move it to another file.
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
-    //char *date = strcat((char*)(tm.tm_year + 1900), (char*)(tm.tm_mon +1));
-    //printf("%s\n", date);
-    printf("now: %d-%d-%d %d:%d:%d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+
+    char * photo_filename = (char*)malloc(30 * sizeof(char));
+    char * year = (char*)malloc(4 * sizeof(char));
+    char * month = (char*)malloc(2 * sizeof(char));
+    char * day = (char*)malloc(2 * sizeof(char));
+    char * hour = (char*)malloc(2 * sizeof(char));
+    char * minute = (char*)malloc(2 * sizeof(char));
+    char * second = (char*)malloc(2 * sizeof(char));
+
+    sprintf(year, "%d", tm.tm_year + 1900);
+    sprintf(month, "%d", tm.tm_mon + 1);
+    sprintf(day, "%d", tm.tm_mday);
+    sprintf(hour, "%d", tm.tm_hour);
+    sprintf(minute, "%d", tm.tm_min);
+    sprintf(second, "%d", tm.tm_sec);
+
+    strcpy (photo_filename, "photo_");
+    strcat(photo_filename, year);
+    strcat(photo_filename, "-");
+    strcat(photo_filename, month);
+    strcat(photo_filename, "-");
+    strcat(photo_filename, day);
+    strcat(photo_filename, "-");
+    strcat(photo_filename, hour);
+    strcat(photo_filename, ":");
+    strcat(photo_filename, minute);
+    strcat(photo_filename, ":");
+    strcat(photo_filename, second);
+    strcat(photo_filename, ".jpg");
+
+    printf("%s\n", photo_filename);
 
     //-------MAIN PROGRAM LOOP
 

@@ -7,3 +7,4 @@ else
     PATH="."
 DATE=$(date +"%Y-%m-%d_%H:%M:%S")
 raspistill -o $PATH/$DATE.jpg
+fi
