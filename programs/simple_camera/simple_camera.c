@@ -68,11 +68,11 @@ int main() {
 	        printf("Just took a photo!\n");
 	    } else {
 		//system("raspivid -o /home/pi/Desktop/Camera/Videos/video.h264");
-		printf("Just recorded a video!");
+		printf("Just recorded a video!\n");
 	    }
 	} else if(digitalRead(23) == LOW) {
 	    delay(200);
-	    printf("switch me to another mode, set up flag or something");
+	    printf("switch me to another mode, set up flag or something\n");
 	    MODE_FLAG = !MODE_FLAG;
 	}
     }

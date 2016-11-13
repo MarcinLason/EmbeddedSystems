@@ -1,3 +1,7 @@
 Program running in loop:
 	- one of tact switch switches between 'photo mode' and 'video mode'
 	- second after click takes a photo/video
+
+PINS (BCM numbering):
+	- [23] switches between modes
+	- [24] takes a photo/video

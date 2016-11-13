@@ -1,1 +1,5 @@
 Program running in loop and taking single photo on every single signal from tact switch.
+
+
+PINS (BCM numbering):
+	- [21] tact switch
