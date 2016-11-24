@@ -13,7 +13,6 @@ int main() {
     pinMode(24, INPUT);			//capture picture from camera
     pullUpDnControl(23, PUD_UP);
     pullUpDnControl(24, PUD_UP);
-    
 
     //-------SETTING DATE TO DIFFERENTIATE NAME OF FILE----
 
