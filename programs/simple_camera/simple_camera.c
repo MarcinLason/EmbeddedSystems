@@ -5,6 +5,55 @@
 #include <wiringPi.h>
 #include <stdbool.h>
 
+char * getFilename(int isVideo) {
+	time_t t = time(NULL);
+	struct tm tm = *localtime(&t);
+
+	char * filename = (char*)malloc(32 * sizeof(char));
+	char * year = (char*)malloc(4 * sizeof(char));
+	char * month = (char*)malloc(2 * sizeof(char));
+	char * day = (char*)malloc(2 * sizeof(char));
+	char * hour = (char*)malloc(2 * sizeof(char));
+	char * minute = (char*)malloc(2 * sizeof(char));
+	char * second = (char*)malloc(2 * sizeof(char));
+
+	sprintf(year, "%d", tm.tm_year + 1900);
+	sprintf(month, "%d", tm.tm_mon + 1);
+	sprintf(day, "%d", tm.tm_mday);
+	sprintf(hour, "%d", tm.tm_hour);
+	sprintf(minute, "%d", tm.tm_min);
+	sprintf(second, "%d", tm.tm_sec);
+
+	if(isVideo == 0){
+		strcpy (filename, "photo_");
+	}
+	else {
+		strcpy (filename, "video_");
+	}
+
+	strcat(filename, year);
+	strcat(filename, "-");
+	strcat(filename, month);
+	strcat(filename, "-");
+	strcat(filename, day);
+	strcat(filename, "-");
+	strcat(filename, hour);
+	strcat(filename, ":");
+	strcat(filename, minute);
+	strcat(filename, ":");
+	strcat(filename, second);
+	if(isVideo == 0){
+		strcat(filename, ".jpg");
+	}
+	else {
+		strcat(filename, ".h264");
+	}
+	return filename;
+}
+
+
+
+
 int main() {
 
     //-------SETTING UP PINS----
@@ -21,39 +70,8 @@ int main() {
 
 
     //After acceptation for this piece of code I will move it to another file.
-    time_t t = time(NULL);
-    struct tm tm = *localtime(&t);
-
-    char * photo_filename = (char*)malloc(30 * sizeof(char));
-    char * year = (char*)malloc(4 * sizeof(char));
-    char * month = (char*)malloc(2 * sizeof(char));
-    char * day = (char*)malloc(2 * sizeof(char));
-    char * hour = (char*)malloc(2 * sizeof(char));
-    char * minute = (char*)malloc(2 * sizeof(char));
-    char * second = (char*)malloc(2 * sizeof(char));
-
-    sprintf(year, "%d", tm.tm_year + 1900);
-    sprintf(month, "%d", tm.tm_mon + 1);
-    sprintf(day, "%d", tm.tm_mday);
-    sprintf(hour, "%d", tm.tm_hour);
-    sprintf(minute, "%d", tm.tm_min);
-    sprintf(second, "%d", tm.tm_sec);
-
-    strcpy (photo_filename, "photo_");
-    strcat(photo_filename, year);
-    strcat(photo_filename, "-");
-    strcat(photo_filename, month);
-    strcat(photo_filename, "-");
-    strcat(photo_filename, day);
-    strcat(photo_filename, "-");
-    strcat(photo_filename, hour);
-    strcat(photo_filename, ":");
-    strcat(photo_filename, minute);
-    strcat(photo_filename, ":");
-    strcat(photo_filename, second);
-    strcat(photo_filename, ".jpg");
-
-    printf("%s\n", photo_filename);
+    char * filename = (char*)malloc(30 * sizeof(char));
+    filename = getFilename(0);
 
     //-------MAIN PROGRAM LOOP
 
