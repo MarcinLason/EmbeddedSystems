@@ -1,3 +1,13 @@
-Script allows us to take photos or video using tact switches.
+Program running in loop:
+	- one of tact switch switches between modes:
+		- 'photo mode'
+		- 'video mode'
+		- 'motion detector video mode'
+	- second after click takes a photo/video
 
-Will be update...
+PINS (BCM numbering):
+	- [23] switches between modes
+	- [27] LED indicates switching between modes
+	- [24] takes a photo/video
+	- [22] LED indicates taking a photo/video
+	- [18] input from motion detector
