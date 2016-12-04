@@ -1,5 +1,8 @@
+
 cmake-build-debug/
 
 *.txt
 
 .idea/
+
+*.nja

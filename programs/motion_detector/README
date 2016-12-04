@@ -1,5 +1,0 @@
-Program running in loop and taking single photo after detect motion.
-
-
-PINS (BCM numbering):
-	- [14] motion detection
