@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import datetime as dt
 import wiringpi as GPIO
@@ -16,6 +17,7 @@ def getFileName(type):
         filename = "video_" + date + '.h264'
     return filename
 
+
 def changeMode(mode):
     GPIO.digitalWrite(27, GPIO.HIGH)
     time.sleep(0.3)
@@ -29,16 +31,28 @@ def changeMode(mode):
     GPIO.digitalWrite(27, GPIO.LOW)
     return mode
 
+
+def cleanUp():
+    # output pins set to 0
+    GPIO.digitalWrite(27, GPIO.LOW)
+    GPIO.digitalWrite(22, GPIO.LOW)
+    # output pins set to input
+    GPIO.pinMode(27, GPIO.INPUT)
+    GPIO.pinMode(22, GPIO.INPUT)
+    sys.exit("Good bye! :)")
+
 # SETTING UP PINS
 GPIO.wiringPiSetupGpio()
 GPIO.pinMode(23, GPIO.INPUT)                # switching mode
 GPIO.pinMode(24, GPIO.INPUT)                # capture picture from camera
+GPIO.pinMode(25, GPIO.INPUT)                # exit from camera
 GPIO.pinMode(18, GPIO.INPUT)                # motion detector input
 pir = MotionSensor(18)                      # motion detector input
 GPIO.pinMode(27, GPIO.OUTPUT)               # LED indicates switching between modes
 GPIO.pinMode(22, GPIO.OUTPUT)               # LED indicates taking a photo/video
 GPIO.pullUpDnControl(23, GPIO.PUD_UP)
 GPIO.pullUpDnControl(24, GPIO.PUD_UP)
+GPIO.pullUpDnControl(25, GPIO.PUD_UP)
 
 # HELLO MESSAGES
 print("Photo mode\n")
@@ -48,6 +62,8 @@ print("Photo mode\n")
 MODE_FLAG = 0                            # [0 - photo; 1 - video; 2 - motion detector
 
 while True:
+    if(GPIO.digitalRead(25) == GPIO.LOW):
+        cleanUp()
     if(GPIO.digitalRead(24) == GPIO.LOW and MODE_FLAG == 0):   # taking photo/video
         time.sleep(0.2)
         GPIO.digitalWrite(22, GPIO.HIGH)
@@ -81,4 +97,3 @@ while True:
         time.sleep(0.2)
         MODE_FLAG = changeMode(MODE_FLAG)
 
-GPIO.cleanup()
