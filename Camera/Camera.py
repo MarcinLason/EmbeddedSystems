@@ -1,8 +1,10 @@
 import os
+import sys
 import time
 import datetime as dt
 import wiringpi as GPIO
-# from picamera import PiCamera
+from picamera import PiCamera
+from gpiozero import MotionSensor
 
 
 # DEFS
@@ -15,15 +17,42 @@ def getFileName(type):
         filename = "video_" + date + '.h264'
     return filename
 
+
+def changeMode(mode):
+    GPIO.digitalWrite(27, GPIO.HIGH)
+    time.sleep(0.3)
+    mode = (mode + 1) % 3
+    if(mode == 0):
+        print("Photo mode\n")
+    elif(mode == 1):
+        print("Video mode\n")
+    elif(mode == 2):
+        print("Motion Detector Video mode\n")
+    GPIO.digitalWrite(27, GPIO.LOW)
+    return mode
+
+
+def cleanUp():
+    # output pins set to 0
+    GPIO.digitalWrite(27, GPIO.LOW)
+    GPIO.digitalWrite(22, GPIO.LOW)
+    # output pins set to input
+    GPIO.pinMode(27, GPIO.INPUT)
+    GPIO.pinMode(22, GPIO.INPUT)
+    sys.exit("Good bye! :)")
+
 # SETTING UP PINS
 GPIO.wiringPiSetupGpio()
 GPIO.pinMode(23, GPIO.INPUT)                # switching mode
 GPIO.pinMode(24, GPIO.INPUT)                # capture picture from camera
+GPIO.pinMode(25, GPIO.INPUT)                # exit from camera
 GPIO.pinMode(18, GPIO.INPUT)                # motion detector input
+pir = MotionSensor(18)                      # motion detector input
 GPIO.pinMode(27, GPIO.OUTPUT)               # LED indicates switching between modes
 GPIO.pinMode(22, GPIO.OUTPUT)               # LED indicates taking a photo/video
 GPIO.pullUpDnControl(23, GPIO.PUD_UP)
 GPIO.pullUpDnControl(24, GPIO.PUD_UP)
+GPIO.pullUpDnControl(25, GPIO.PUD_UP)
 
 # HELLO MESSAGES
 print("Photo mode\n")
@@ -33,45 +62,38 @@ print("Photo mode\n")
 MODE_FLAG = 0                            # [0 - photo; 1 - video; 2 - motion detector
 
 while True:
-    if(GPIO.digitalRead(24) == GPIO.LOW):   # taking photo/video
+    if(GPIO.digitalRead(25) == GPIO.LOW):
+        cleanUp()
+    if(GPIO.digitalRead(24) == GPIO.LOW and MODE_FLAG == 0):   # taking photo/video
         time.sleep(0.2)
-        if(MODE_FLAG == 0):
-            GPIO.digitalWrite(22, GPIO.HIGH)
-            time.sleep(0.3)
-            os.system('raspistill -o /home/pi/Desktop/Camera/Photos/' + getFileName(True))
-            print("Just took a photo!\n")
-            GPIO.digitalWrite(22, GPIO.LOW)
-        elif(MODE_FLAG == 1):
-            GPIO.digitalWrite(22, GPIO.HIGH)
-            time.sleep(0.3)
-            os.system('raspivid -o /home/pi/Desktop/Camera/Videos/' + getFileName(False))
-            print("Just recorded a video!\n")
-            GPIO.digitalWrite(22, GPIO.LOW)
-        else:
-            print("You are in 'motion detector video mode'")
+        GPIO.digitalWrite(22, GPIO.HIGH)
+        time.sleep(0.3)
+        os.system('raspistill -o /home/pi/Desktop/Camera/Photos/' + getFileName(True))
+        print("Just took a photo!\n")
+        GPIO.digitalWrite(22, GPIO.LOW)
+    elif(GPIO.digitalRead(24) == GPIO.LOW and MODE_FLAG == 1):
+        time.sleep(0.2)
+        GPIO.digitalWrite(22, GPIO.HIGH)
+        time.sleep(0.3)
+        cam = PiCamera()
+        cam.start_recording('/home/pi/Desktop/Camera/Videos/' + getFileName(False))
+        while(GPIO.digitalRead(24) == GPIO.LOW):
+            pass
+        cam.stop_recording()
+        print("Just recorded a video!\n")
+        GPIO.digitalWrite(22, GPIO.LOW)
+    elif(GPIO.digitalRead(24) == GPIO.LOW):        # modify - it appears in photo mode too
+        print("You are in 'motion detector video mode'")
     elif(GPIO.digitalRead(18) and MODE_FLAG == 2):
         GPIO.digitalWrite(22, GPIO.HIGH)
         time.sleep(0.3)
-        os.system('raspivid -o /home/pi/Desktop/Camera/Videos/' + getFileName(False))
+        cam = PiCamera()
+        cam.start_recording('/home/pi/Desktop/Camera/Videos/' + getFileName(False))
+        pir.wait_for_no_motion()
+        cam.stop_recording()
         print("Just recorded a video after motion detected!\n")
         GPIO.digitalWrite(22, GPIO.LOW)
-
     elif(GPIO.digitalRead(23) == GPIO.LOW):  # switching between modes
         time.sleep(0.2)
-        GPIO.digitalWrite(27, GPIO.HIGH)
-        time.sleep(0.3)
-        MODE_FLAG = (MODE_FLAG + 1) % 3
-        if(MODE_FLAG == 0):
-            print("Photo mode\n")
-        elif(MODE_FLAG == 1):
-            print("Video mode\n")
-        elif(MODE_FLAG == 2):
-            print("Motion Detector Video mode\n")
-        GPIO.digitalWrite(27, GPIO.LOW)
-    '''else:            records with speed up, interesting...
-        cam = PiCamera()    wider angle of recording? check it out
-        cam.start_recording(getFileName(False))
-        time.sleep(6)
-        cam.stop_recording()'''
+        MODE_FLAG = changeMode(MODE_FLAG)
 
-GPIO.cleanup()
