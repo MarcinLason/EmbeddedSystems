@@ -2,9 +2,6 @@ import os
 import datetime as dt
 import cv2
 import Tkinter
-import time
-
-time1 = time.clock()
 
 # Getting screen resolution
 root = Tkinter.Tk()
@@ -45,6 +42,4 @@ for(x, y, w, h) in faces:
 # Showing resized image with faces marked
 resized_image = cv2.resize(image, (width, height))
 cv2.imshow("Faces found", resized_image)
-print time.clock() - time1
 cv2.waitKey(0)
-
