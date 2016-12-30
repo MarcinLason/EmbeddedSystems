@@ -28,7 +28,6 @@ public class ControlPanel extends AppCompatActivity {
 
 
     public void sendBtMsg(String msg2send) {
-        //UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"); //Standard SerialPortService ID
         UUID uuid = UUID.fromString("94f39d29-7d6d-437d-973b-fba39e49d4ee"); //Standard SerialPortService ID
         try {
             mmSocket = mmDevice.createRfcommSocketToServiceRecord(uuid);
@@ -36,13 +35,10 @@ public class ControlPanel extends AppCompatActivity {
                 mmSocket.connect();
             }
 
-            String msg = msg2send;
-            //msg += "\n";
             OutputStream mmOutputStream = mmSocket.getOutputStream();
-            mmOutputStream.write(msg.getBytes());
+            mmOutputStream.write(msg2send.getBytes());
 
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -109,7 +105,7 @@ public class ControlPanel extends AppCompatActivity {
                                 }
                             }
 
-                            if (workDone == true){
+                            if (workDone){
                                 mmSocket.close();
                                 break;
                             }
@@ -169,6 +165,5 @@ public class ControlPanel extends AppCompatActivity {
                 }
             }
         }
-
     }
 }
