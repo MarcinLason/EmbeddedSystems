@@ -7,6 +7,8 @@ import time
 import datetime as dt
 import wiringpi as GPIO
 
+uuid = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
+
 
 # DEFS
 def initGPIO():
@@ -97,8 +99,6 @@ server_sock.listen(1)
 
 port = server_sock.getsockname()[1]
 
-uuid = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
-
 advertise_service(server_sock, "CameraServer",
                   service_id=uuid,
                   service_classes=[uuid, SERIAL_PORT_CLASS],
@@ -137,7 +137,7 @@ while True:
             data = 'turn off!'
             cleanUp()
         else:
-            data = 'WTF!'
+            data = 'Interruption!'
         client_sock.send(data)
         print("sending [%s]" % data)
 
