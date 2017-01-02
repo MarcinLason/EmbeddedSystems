@@ -1,0 +1,11 @@
+Program communicates with phone via Bluetooth. Running in loop:
+	- one of signals switches between modes:
+		- 'photo mode'
+		- 'video mode'
+		- 'motion detector video mode'
+	- second after click takes a photo/video
+
+PINS (BCM numbering):
+	- [27] (LED) indicates switching between modes
+	- [22] (LED) indicates taking a photo/video
+	- [18] input from motion detector
