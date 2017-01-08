@@ -80,9 +80,10 @@ def captureVideo():
 
 def tactSwitches(MODE_FLAG, tact_thread_queue):
     logging.debug('Tact thread!')
-    while not exit_program_flag:
+    kill_this_thread = False
+    while not exit_program_flag and not kill_this_thread:
         if (GPIO.digitalRead(25) == GPIO.LOW):
-            cleanUp()
+            kill_this_thread = True             # kill tact switch thread; that feature
         if (GPIO.digitalRead(24) == GPIO.LOW):  # taking photo/video
             time.sleep(0.2)
             mode = tact_thread_queue.get()
@@ -95,11 +96,15 @@ def tactSwitches(MODE_FLAG, tact_thread_queue):
         elif (GPIO.digitalRead(23) == GPIO.LOW):  # switching between modes
             time.sleep(0.2)
             mode = tact_thread_queue.get()
-            if mode != 1:                         # via tact switch face detection mode is unavailable
+            if mode == 1:                         # via tact switch face detection mode is unavailable
                 new_mode = 0
+                print("Photo mode\n")
+            elif mode == 2:
+                new_mode = 2                    # via tact switch cannot exit detection mode
             else:
                 new_mode = changeMode(mode)
             tact_thread_queue.put(new_mode)
+    logging.debug('Tact thread stopped!')
 
 
 def opencvMode():
@@ -127,9 +132,6 @@ def cleanUp():
     GPIO.pinMode(27, GPIO.INPUT)
     GPIO.pinMode(22, GPIO.INPUT)
     sys.exit("Good bye! :)")
-    # clean up bluetooth connection
-    client_sock.close()
-    server_sock.close()
 
 
 initGPIO()
@@ -206,6 +208,8 @@ while True:
             exit_opencv_flag = True
             exit_program_flag = True
             client_sock.send(data)
+            client_sock.close()
+            server_sock.close()
             cleanUp()
         else:
             data = 'Interruption!'
