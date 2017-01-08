@@ -86,6 +86,7 @@ def opencvMode():
     logging.debug('Starting!')
     while not exit_opencv_flag:
         logging.debug('Working!')
+        time.sleep(1)
     logging.debug('Exiting!')
 
 
@@ -145,6 +146,8 @@ while True:
                 opencv_thread = threading.Thread(name='opencv', target=opencvMode)
                 opencv_thread.start()
                 data = 'opencv_on'
+            else:
+                exit_opencv_flag = True
         elif data == 'exit_opencv':
             # if opencv_thread is not None:
             exit_opencv_flag = True # kill opencv thread
