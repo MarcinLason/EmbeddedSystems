@@ -146,11 +146,11 @@ while True:
                 opencv_thread.start()
                 data = 'opencv_on'
         elif data == 'exit_opencv':
-            if opencv_thread is not None:
-                exit_opencv_flag = True # kill opencv thread
-                time.sleep(1)           # wait for thread death
-                opencv_thread = None
-                data = 'opencv_off'
+            # if opencv_thread is not None:
+            exit_opencv_flag = True # kill opencv thread
+            time.sleep(1)           # wait for thread death
+            opencv_thread = None
+            data = 'opencv_off'
         elif data == 'capture':
             data = 'capture!'
             if MODE_FLAG == 0:     # taking photo
