@@ -31,6 +31,10 @@ def initGPIO():
     GPIO.pullUpDnControl(25, GPIO.PUD_UP)
 
 
+def initOpenCV():
+    pass
+
+
 def getFileName(type):
     now = dt.datetime.now()
     date = str(now.date()) + "_" + str(now.time().replace(microsecond=0))
@@ -50,7 +54,7 @@ def changeMode(mode):
     elif (mode == 1):
         print("Video mode\n")
     elif (mode == 2):
-        print("Motion Detector Video mode\n")
+        print("Motion Detector / Face Detecting mode\n")
     GPIO.digitalWrite(27, GPIO.LOW)
     return mode
 
@@ -72,22 +76,51 @@ def captureVideo():
     GPIO.digitalWrite(22, GPIO.LOW)
 
 
-def captureWithPIR():
-    GPIO.digitalWrite(22, GPIO.HIGH)
-    cam = PiCamera()
-    cam.start_recording('/home/pi/Desktop/Camera/Videos/' + getFileName(False))
-    pir.wait_for_no_motion()
-    cam.stop_recording()
-    print("Just recorded a video after motion detected!\n")
-    GPIO.digitalWrite(22, GPIO.LOW)
+def tactSwitches():
+    logging.debug('Tact thread!')
+    while True:
+        if (GPIO.digitalRead(25) == GPIO.LOW):
+            cleanUp()
+        if (GPIO.digitalRead(24) == GPIO.LOW and MODE_FLAG == 0):  # taking photo/video
+            time.sleep(0.2)
+            GPIO.digitalWrite(22, GPIO.HIGH)
+            time.sleep(0.3)
+            os.system('raspistill -o /home/pi/Desktop/Camera/Photos/' + getFileName(True))
+            print("Just took a photo!\n")
+            GPIO.digitalWrite(22, GPIO.LOW)
+        elif (GPIO.digitalRead(24) == GPIO.LOW and MODE_FLAG == 1):
+            time.sleep(0.2)
+            GPIO.digitalWrite(22, GPIO.HIGH)
+            time.sleep(0.3)
+            cam = PiCamera()
+            cam.start_recording('/home/pi/Desktop/Camera/Videos/' + getFileName(False))
+            while (GPIO.digitalRead(24) == GPIO.LOW):
+                pass
+            cam.stop_recording()
+            print("Just recorded a video!\n")
+            GPIO.digitalWrite(22, GPIO.LOW)
+        elif (GPIO.digitalRead(23) == GPIO.LOW):  # switching between modes
+            time.sleep(0.2)
+            MODE_FLAG = changeMode(MODE_FLAG)
+            if MODE_FLAG == 2:     # [OpenCV functionality]
+                MODE_FLAG = changeMode(MODE_FLAG)
 
 
 def opencvMode():
-    logging.debug('Starting!')
+    logging.debug('Starting openCV mode!')
+    for i in range(5):              # time to safe escape
+        print("Left {0} seconds to start".format(i))
+        time.sleep(1)
+    print("Started detecting!")
     while not exit_opencv_flag:
         logging.debug('Working!')
         time.sleep(1)
-    logging.debug('Exiting!')
+        if(GPIO.digitalRead(18) == GPIO.HIGH):      # signal from motion detector
+            pass
+        # IN THIS LOOP PLACE YOUR FACE DETECTION [ONLY CAPTURING PHOTOS AND PROCESSING]
+        # ALL CONFIGURATIONS LINES PLACE IN initOpenCV METHOD
+        # CONSIDER getFileName METHOD
+    logging.debug('Exiting openCV mode!')
 
 
 def cleanUp():
@@ -126,6 +159,9 @@ MODE_FLAG = 0                            # [0 - photo; 1 - video; 2 - motion det
 pir = MotionSensor(18)                   # motion detector input
 opencv_thread = None
 
+tact_switches_thread = threading.Thread(name='tactswitch', target=tactSwitches)
+tact_switches_thread.start()
+
 while True:
     print("Waiting for connection on RFCOMM channel %d" % port)
 
@@ -160,8 +196,6 @@ while True:
                 capturePicture()
             elif MODE_FLAG == 1:   # taking video
                 captureVideo()
-            # elif MODE_FLAG == 2:   # taking video after motion detected [OpenCV functionality]
-            #     captureWithPIR()
         elif data == 'turnOff':
             data = 'turned off!'
             exit_opencv_flag = True
