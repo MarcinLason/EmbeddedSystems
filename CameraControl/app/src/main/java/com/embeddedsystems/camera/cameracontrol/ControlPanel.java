@@ -75,6 +75,7 @@ public class ControlPanel extends AppCompatActivity {
                         final InputStream mmInputStream;
                         mmInputStream = mmSocket.getInputStream();
                         bytesAvailable = mmInputStream.available();
+
                         if(bytesAvailable > 0) {
 
                             byte[] packetBytes = new byte[bytesAvailable];
@@ -146,7 +147,6 @@ public class ControlPanel extends AppCompatActivity {
             public void onClick(View v) {
                 // Perform action on temp button click
                 (new Thread(new workerThread("turnOff"))).start();
-                System.out.println("lordoza");
             }
         });
 
