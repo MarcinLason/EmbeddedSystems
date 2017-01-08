@@ -88,34 +88,23 @@ def tactSwitches(MODE_FLAG, tact_thread_queue):
             mode = tact_thread_queue.get()
             if mode == 0:                       # photo
                 tact_thread_queue.put(mode)
-                GPIO.digitalWrite(22, GPIO.HIGH)
-                time.sleep(0.3)
-                os.system('raspistill -o /home/pi/Desktop/Camera/Photos/' + getFileName(True))
-                print("Just took a photo!\n")
-                GPIO.digitalWrite(22, GPIO.LOW)
+                capturePicture()
             elif mode == 1:                     # video
                 tact_thread_queue.put(mode)
-                GPIO.digitalWrite(22, GPIO.HIGH)
-                time.sleep(0.3)
-                cam = PiCamera()
-                cam.start_recording('/home/pi/Desktop/Camera/Videos/' + getFileName(False))
-                while (GPIO.digitalRead(24) == GPIO.LOW):
-                    pass
-                cam.stop_recording()
-                print("Just recorded a video!\n")
-                GPIO.digitalWrite(22, GPIO.LOW)
+                captureVideo()
         elif (GPIO.digitalRead(23) == GPIO.LOW):  # switching between modes
             time.sleep(0.2)
             mode = tact_thread_queue.get()
-            new_mode = changeMode(mode)
+            if mode != 1:                         # via tact switch face detection mode is unavailable
+                new_mode = 0
+            else:
+                new_mode = changeMode(mode)
             tact_thread_queue.put(new_mode)
-            # if MODE_FLAG == 2:     # [OpenCV functionality]
-            #     MODE_FLAG = changeMode(MODE_FLAG)
 
 
 def opencvMode():
     logging.debug('Starting openCV mode!')
-    for i in range(5):              # time to safe escape
+    for i in reversed(range(5)):              # time to safe escape
         print("Left {0} seconds to start".format(i))
         time.sleep(1)
     print("Started detecting!")
@@ -186,7 +175,9 @@ while True:
 
         if data == 'switch':
             data = 'switched!'
-            MODE_FLAG = changeMode(MODE_FLAG)
+            mode = tact_thread_queue.get()
+            MODE_FLAG = changeMode(mode)
+            tact_thread_queue.put(MODE_FLAG)
             if MODE_FLAG == 2:     # [OpenCV functionality]
                 exit_opencv_flag = False
                 opencv_thread = threading.Thread(name='opencv', target=opencvMode)
@@ -195,16 +186,20 @@ while True:
             else:
                 exit_opencv_flag = True
         elif data == 'exit_opencv':
-            # if opencv_thread is not None:
             exit_opencv_flag = True # kill opencv thread
             time.sleep(1)           # wait for thread death
             opencv_thread = None
+            mode = tact_thread_queue.get()
+            MODE_FLAG = 0
+            tact_thread_queue.put(MODE_FLAG)
             data = 'opencv_off'
         elif data == 'capture':
             data = 'capture!'
-            if MODE_FLAG == 0:     # taking photo
+            mode = tact_thread_queue.get()
+            tact_thread_queue.put(mode)
+            if mode == 0:     # taking photo
                 capturePicture()
-            elif MODE_FLAG == 1:   # taking video
+            elif mode == 1:   # taking video
                 captureVideo()
         elif data == 'turnOff':
             data = 'turned off!'
