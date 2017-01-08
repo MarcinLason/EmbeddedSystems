@@ -4,6 +4,7 @@ from gpiozero import MotionSensor
 import os
 import sys
 import time
+import Queue
 import threading
 import logging
 import datetime as dt
@@ -76,34 +77,39 @@ def captureVideo():
     GPIO.digitalWrite(22, GPIO.LOW)
 
 
-def tactSwitches():
+def tactSwitches(tact_thread_queue):
     logging.debug('Tact thread!')
     while True:
         if (GPIO.digitalRead(25) == GPIO.LOW):
             cleanUp()
-        if (GPIO.digitalRead(24) == GPIO.LOW and MODE_FLAG == 0):  # taking photo/video
+        if (GPIO.digitalRead(24) == GPIO.LOW):  # taking photo/video
             time.sleep(0.2)
-            GPIO.digitalWrite(22, GPIO.HIGH)
-            time.sleep(0.3)
-            os.system('raspistill -o /home/pi/Desktop/Camera/Photos/' + getFileName(True))
-            print("Just took a photo!\n")
-            GPIO.digitalWrite(22, GPIO.LOW)
-        elif (GPIO.digitalRead(24) == GPIO.LOW and MODE_FLAG == 1):
-            time.sleep(0.2)
-            GPIO.digitalWrite(22, GPIO.HIGH)
-            time.sleep(0.3)
-            cam = PiCamera()
-            cam.start_recording('/home/pi/Desktop/Camera/Videos/' + getFileName(False))
-            while (GPIO.digitalRead(24) == GPIO.LOW):
-                pass
-            cam.stop_recording()
-            print("Just recorded a video!\n")
-            GPIO.digitalWrite(22, GPIO.LOW)
+            mode = tact_thread_queue.get()
+            if mode == 0:                       # photo
+                tact_thread_queue.put(mode)
+                GPIO.digitalWrite(22, GPIO.HIGH)
+                time.sleep(0.3)
+                os.system('raspistill -o /home/pi/Desktop/Camera/Photos/' + getFileName(True))
+                print("Just took a photo!\n")
+                GPIO.digitalWrite(22, GPIO.LOW)
+            elif mode == 1:                     # video
+                tact_thread_queue.put(mode)
+                GPIO.digitalWrite(22, GPIO.HIGH)
+                time.sleep(0.3)
+                cam = PiCamera()
+                cam.start_recording('/home/pi/Desktop/Camera/Videos/' + getFileName(False))
+                while (GPIO.digitalRead(24) == GPIO.LOW):
+                    pass
+                cam.stop_recording()
+                print("Just recorded a video!\n")
+                GPIO.digitalWrite(22, GPIO.LOW)
         elif (GPIO.digitalRead(23) == GPIO.LOW):  # switching between modes
             time.sleep(0.2)
-            MODE_FLAG = changeMode(MODE_FLAG)
-            if MODE_FLAG == 2:     # [OpenCV functionality]
-                MODE_FLAG = changeMode(MODE_FLAG)
+            mode = tact_thread_queue.get()
+            new_mode = changeMode(mode)
+            tact_thread_queue.put(new_mode)
+            # if MODE_FLAG == 2:     # [OpenCV functionality]
+            #     MODE_FLAG = changeMode(MODE_FLAG)
 
 
 def opencvMode():
@@ -159,7 +165,10 @@ MODE_FLAG = 0                            # [0 - photo; 1 - video; 2 - motion det
 pir = MotionSensor(18)                   # motion detector input
 opencv_thread = None
 
-tact_switches_thread = threading.Thread(name='tactswitch', target=tactSwitches)
+tact_thread_queue = Queue.Queue()
+tact_thread_queue.put(MODE_FLAG)
+
+tact_switches_thread = threading.Thread(name='tactswitch', target=tactSwitches, args=(tact_thread_queue))
 tact_switches_thread.start()
 
 while True:
