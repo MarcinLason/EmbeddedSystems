@@ -4,10 +4,17 @@ from gpiozero import MotionSensor
 import os
 import sys
 import time
+import threading
+import logging
 import datetime as dt
 import wiringpi as GPIO
 
 uuid = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
+exit_opencv_flag = False
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='[%(levelname)s] (%(threadName)-10s) %(message)s',
+                    )
 
 
 # DEFS
@@ -75,6 +82,13 @@ def captureWithPIR():
     GPIO.digitalWrite(22, GPIO.LOW)
 
 
+def opencvMode():
+    logging.debug('Starting!')
+    while not exit_opencv_flag:
+        logging.debug('Working!')
+    logging.debug('Exiting!')
+
+
 def cleanUp():
     # output pins set to 0
     GPIO.digitalWrite(27, GPIO.LOW)
@@ -109,6 +123,7 @@ advertise_service(server_sock, "CameraServer",
 # MAIN PROGRAM LOOP
 MODE_FLAG = 0                            # [0 - photo; 1 - video; 2 - motion detector
 pir = MotionSensor(18)                   # motion detector input
+opencv_thread = None
 
 while True:
     print("Waiting for connection on RFCOMM channel %d" % port)
@@ -125,16 +140,29 @@ while True:
         if data == 'switch':
             data = 'switched!'
             MODE_FLAG = changeMode(MODE_FLAG)
+            if MODE_FLAG == 2:     # [OpenCV functionality]
+                exit_opencv_flag = False
+                opencv_thread = threading.Thread(name='opencv', target=opencvMode)
+                opencv_thread.start()
+                data = 'opencv_on'
+        elif data == 'exit_opencv':
+            if opencv_thread is not None:
+                exit_opencv_flag = True # kill opencv thread
+                time.sleep(1)           # wait for thread death
+                opencv_thread = None
+                data = 'opencv_off'
         elif data == 'capture':
             data = 'capture!'
             if MODE_FLAG == 0:     # taking photo
                 capturePicture()
             elif MODE_FLAG == 1:   # taking video
                 captureVideo()
-            elif MODE_FLAG == 2:   # taking video after motion detected
-                captureWithPIR()
+            # elif MODE_FLAG == 2:   # taking video after motion detected [OpenCV functionality]
+            #     captureWithPIR()
         elif data == 'turnOff':
-            data = 'turn off!'
+            data = 'turned off!'
+            exit_opencv_flag = True
+            client_sock.send(data)
             cleanUp()
         else:
             data = 'Interruption!'
