@@ -77,7 +77,7 @@ def captureVideo():
     GPIO.digitalWrite(22, GPIO.LOW)
 
 
-def tactSwitches(tact_thread_queue):
+def tactSwitches(MODE_FLAG, tact_thread_queue):
     logging.debug('Tact thread!')
     while True:
         if (GPIO.digitalRead(25) == GPIO.LOW):
@@ -168,7 +168,7 @@ opencv_thread = None
 tact_thread_queue = Queue.Queue()
 tact_thread_queue.put(MODE_FLAG)
 
-tact_switches_thread = threading.Thread(name='tactswitch', target=tactSwitches, args=(tact_thread_queue))
+tact_switches_thread = threading.Thread(name='tactswitch', target=tactSwitches, args=(MODE_FLAG, tact_thread_queue))
 tact_switches_thread.start()
 
 while True:
