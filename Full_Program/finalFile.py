@@ -12,6 +12,7 @@ import wiringpi as GPIO
 
 uuid = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
 exit_opencv_flag = False
+exit_program_flag = False
 
 logging.basicConfig(level=logging.DEBUG,
                     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
@@ -79,7 +80,7 @@ def captureVideo():
 
 def tactSwitches(MODE_FLAG, tact_thread_queue):
     logging.debug('Tact thread!')
-    while True:
+    while not exit_program_flag:
         if (GPIO.digitalRead(25) == GPIO.LOW):
             cleanUp()
         if (GPIO.digitalRead(24) == GPIO.LOW):  # taking photo/video
@@ -208,6 +209,7 @@ while True:
         elif data == 'turnOff':
             data = 'turned off!'
             exit_opencv_flag = True
+            exit_program_flag = True
             client_sock.send(data)
             cleanUp()
         else:
