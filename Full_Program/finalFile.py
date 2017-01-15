@@ -37,6 +37,14 @@ def initOpenCV():
     pass
 
 
+def initCatalogsStructure():
+    if not os.path.exists('/home/pi/Desktop/Camera/Photos/'):
+        os.makedirs('/home/pi/Desktop/Camera/Photos/')
+
+    if not os.path.exists('/home/pi/Desktop/Camera/FacesDetected/'):
+        os.makedirs('/home/pi/Desktop/Camera/FacesDetected/')
+
+
 def getFileName(type):
     now = dt.datetime.now()
     date = str(now.date()) + "_" + str(now.time().replace(microsecond=0))
@@ -116,11 +124,35 @@ def opencvMode():
     while not exit_opencv_flag:
         logging.debug('Working!')
         time.sleep(1)
-        if(GPIO.digitalRead(18) == GPIO.HIGH):      # signal from motion detector
-            pass
-        # IN THIS LOOP PLACE YOUR FACE DETECTION [ONLY CAPTURING PHOTOS AND PROCESSING]
-        # ALL CONFIGURATIONS LINES PLACE IN initOpenCV METHOD
-        # CONSIDER getFileName METHOD
+        if(GPIO.digitalRead(18) == GPIO.HIGH):   # signal from motion detector
+            # Taking photo and preparing path
+            GPIO.digitalWrite(22, GPIO.HIGH)
+            imageName = getFileName(True)
+            fullPath = '/home/pi/Desktop/Camera/Photos/' + imageName
+            os.system('raspistill -o' + fullPath)
+            GPIO.digitalWrite(22, GPIO.LOW)
+
+            # Converting image to gray version
+            image = cv2.imread(fullPath)
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+            # Detecting faces on image and printing result
+            faceCascade = cv2.CascadeClassifier("./haarcascade_frontalface_default.xml")
+            faces = faceCascade.detectMultiScale(
+                gray,
+                scaleFactor=1.1,
+                minNeighbors=5,
+                minSize=(30, 30)
+            )
+            print("Found {0} faces!".format(len(faces)))
+
+            # Tagging faces by rectangles on image and saving tagged image
+            for(x, y, w, h) in faces:
+                cv2.rectangle(image, (x, y), (x+w, y+h), (0, 255, 0), 2)
+
+            # Saving photo with faces detected to the special folder
+            if (len(faces) > 0):
+                cv2.imwrite('/home/pi/Desktop/Camera/FacesDetected/' + imageName, image)
     logging.debug('Exiting openCV mode!')
 
 
