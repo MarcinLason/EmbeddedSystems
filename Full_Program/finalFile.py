@@ -1,4 +1,7 @@
+#!~/.virtualenvs/cv/bin/python
+
 from bluetooth import *
+import cv2
 from picamera import PiCamera
 from gpiozero import MotionSensor
 import os
@@ -9,7 +12,6 @@ import threading
 import logging
 import datetime as dt
 import wiringpi as GPIO
-import cv2
 
 uuid = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
 exit_opencv_flag = False
