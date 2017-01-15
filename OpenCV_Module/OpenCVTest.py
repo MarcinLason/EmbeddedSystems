@@ -3,6 +3,7 @@ import datetime as dt
 import cv2
 import Tkinter
 
+
 # Getting screen resolution
 root = Tkinter.Tk()
 width = root.winfo_screenwidth()
@@ -13,8 +14,17 @@ now = dt.datetime.now()
 imageName = str(now.date()) + "_" + str(now.time().replace(microsecond=0)) + '.jpg'
 
 # Setting paths
-imagePath = '/home/pi/Desktop/Camera/Photos/' + imageName
+mainPhotosDirectoryPath = '/home/pi/Desktop/Camera/Photos/'
+directoryToPhotosWithFacesPath = '/home/pi/Desktop/Camera/FacesDetected/'
+imagePath = mainPhotosDirectoryPath + imageName
 cascPath = "./haarcascade_frontalface_default.xml"
+
+# Creating destination catalog if doesn't exist
+if not os.path.exists(mainPhotosDirectoryPath):
+    os.makedirs(mainPhotosDirectoryPath)
+
+if not os.path.exists(directoryToPhotosWithFacesPath):
+    os.makedirs(directoryToPhotosWithFacesPath)
 
 # Taking photo
 os.system('raspistill -o ' + imagePath)
@@ -35,9 +45,12 @@ faces = faceCascade.detectMultiScale(
 # Printing number of detected faces
 print("Found {0} faces!".format(len(faces)))
 
-# Flaging faces by rectangles on image
+# Flaging faces by rectangles on image and saving tagged image
 for(x, y, w, h) in faces:
     cv2.rectangle(image, (x, y), (x+w, y+h), (0, 255, 0), 2)
+
+if (len(faces) > 0):
+    cv2.imwrite(directoryToPhotosWithFacesPath + imageName, image)
 
 # Showing resized image with faces marked
 resized_image = cv2.resize(image, (width, height))
