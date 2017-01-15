@@ -9,6 +9,7 @@ import threading
 import logging
 import datetime as dt
 import wiringpi as GPIO
+import cv2
 
 uuid = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
 exit_opencv_flag = False
@@ -31,10 +32,6 @@ def initGPIO():
     GPIO.pullUpDnControl(23, GPIO.PUD_UP)
     GPIO.pullUpDnControl(24, GPIO.PUD_UP)
     GPIO.pullUpDnControl(25, GPIO.PUD_UP)
-
-
-def initOpenCV():
-    pass
 
 
 def initCatalogsStructure():
@@ -167,6 +164,7 @@ def cleanUp():
 
 
 initGPIO()
+initCatalogsStructure()
 # HELLO MESSAGES
 print("Photo mode\n")
 
