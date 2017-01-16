@@ -6,6 +6,9 @@ Program communicates with phone via Bluetooth. Running in loop:
 	- second after click takes a photo/video
 
 PINS (BCM numbering):
+	- [23] (tact switch) switches between modes
 	- [27] (LED) indicates switching between modes
+	- [24] (tact switch) takes a photo/video
 	- [22] (LED) indicates taking a photo/video
 	- [18] input from motion detector
+	- [25] (tact switch) exits from program
