@@ -40,6 +40,9 @@ def initCatalogsStructure():
     if not os.path.exists('/home/pi/Desktop/Camera/Photos/'):
         os.makedirs('/home/pi/Desktop/Camera/Photos/')
 
+    if not os.path.exists('/home/pi/Desktop/Camera/Videos/'):
+        os.makedirs('/home/pi/Desktop/Camera/Videos/')
+
     if not os.path.exists('/home/pi/Desktop/Camera/FacesDetected/'):
         os.makedirs('/home/pi/Desktop/Camera/FacesDetected/')
 
