@@ -54,6 +54,7 @@ public class ControlPanel extends AppCompatActivity {
         final Button switchModeButton = (Button) findViewById(R.id.switchModeButton);
         final Button captureButton = (Button) findViewById(R.id.captureButton);
         final Button turnOffButton = (Button) findViewById(R.id.turnOffButton);
+        final Button enableSwitchesButton = (Button) findViewById(R.id.tactSwitches);
 
         BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -123,7 +124,6 @@ public class ControlPanel extends AppCompatActivity {
           */
         switchModeButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // Perform action on temp button click
                 (new Thread(new workerThread("switch"))).start();
 
             }
@@ -134,7 +134,6 @@ public class ControlPanel extends AppCompatActivity {
          */
         captureButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // Perform action on temp button click
                 (new Thread(new workerThread("capture"))).start();
 
             }
@@ -145,8 +144,16 @@ public class ControlPanel extends AppCompatActivity {
          */
         turnOffButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // Perform action on temp button click
                 (new Thread(new workerThread("turnOff"))).start();
+            }
+        });
+
+        /**
+         * ActionListener: sends information to Raspberry due to enable tact switches
+         */
+        enableSwitchesButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                (new Thread(new workerThread("enaSwitches"))).start();
             }
         });
 
