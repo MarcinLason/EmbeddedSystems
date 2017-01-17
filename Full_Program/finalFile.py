@@ -133,7 +133,7 @@ def opencvMode():
             GPIO.digitalWrite(22, GPIO.HIGH)
             imageName = getFileName(True)
             fullPath = '/home/pi/Desktop/Camera/Photos/' + imageName
-            os.system('raspistill -o' + fullPath)
+            os.system('raspistill -o ' + fullPath)
             GPIO.digitalWrite(22, GPIO.LOW)
 
             # Converting image to gray version
@@ -255,7 +255,6 @@ while True:
                 tact_switches_thread = threading.Thread(name='tactswitch', target=tactSwitches,
                                                         args=(MODE_FLAG, tact_thread_queue))
                 tact_switches_thread.start()
-                global TACT_SWITCH_FLAG
                 TACT_SWITCH_FLAG = 1
                 logging.debug("tact switches thread started!\n")
                 logging.debug(TACT_SWITCH_FLAG)
