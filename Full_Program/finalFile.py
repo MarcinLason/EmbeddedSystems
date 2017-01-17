@@ -94,6 +94,8 @@ def tactSwitches(MODE_FLAG, tact_thread_queue):
     while not exit_program_flag and not kill_this_thread:
         if (GPIO.digitalRead(25) == GPIO.LOW):
             kill_this_thread = True             # kill tact switch thread; that feature
+            global TACT_SWITCH_FLAG
+            TACT_SWITCH_FLAG = 0
         if (GPIO.digitalRead(24) == GPIO.LOW):  # taking photo/video
             time.sleep(0.2)
             mode = tact_thread_queue.get()
@@ -189,6 +191,7 @@ advertise_service(server_sock, "CameraServer",
 
 # MAIN PROGRAM LOOP
 MODE_FLAG = 0                            # [0 - photo; 1 - video; 2 - motion detector
+global TACT_SWITCH_FLAG                  # flag that inform if tact swithces thread is already enabled
 pir = MotionSensor(18)                   # motion detector input
 opencv_thread = None
 
@@ -197,6 +200,7 @@ tact_thread_queue.put(MODE_FLAG)
 
 tact_switches_thread = threading.Thread(name='tactswitch', target=tactSwitches, args=(MODE_FLAG, tact_thread_queue))
 tact_switches_thread.start()
+TACT_SWITCH_FLAG = 1
 
 while True:
     print("Waiting for connection on RFCOMM channel %d" % port)
@@ -246,6 +250,15 @@ while True:
             client_sock.close()
             server_sock.close()
             cleanUp()
+        elif data == 'enaSwitches':
+            if TACT_SWITCH_FLAG != 1:
+                tact_switches_thread = threading.Thread(name='tactswitch', target=tactSwitches,
+                                                        args=(MODE_FLAG, tact_thread_queue))
+                tact_switches_thread.start()
+                global TACT_SWITCH_FLAG
+                TACT_SWITCH_FLAG = 1
+                logging.debug("tact switches thread started!\n")
+                logging.debug(TACT_SWITCH_FLAG)
         else:
             data = 'Interruption!'
         client_sock.send(data)
